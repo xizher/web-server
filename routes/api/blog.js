@@ -24,7 +24,7 @@ router.post('/add', (req, res, next) => {
 });
 
 router.get('/list', (req, res, next) => {
-  eval(`SELECT id, title, description, sides, create_time, modify_time, view_count, good_count FROM tb_blog;`)
+  eval(`SELECT id, title, description, sides, create_time, modify_time, view_count, good_count FROM tb_blog ORDER BY create_time desc;`)
     .then(result => res.json(new SuccessModel(result.rows)))
     .catch(err => {
       console.log(err);
