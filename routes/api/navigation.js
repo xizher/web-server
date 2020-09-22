@@ -10,7 +10,7 @@ router.post('/add', (req, res, next) => {
     if(!numberPattern.test(from)) {
       return Promise.reject('输入信息格式错误');
     }
-    const result = await eval(`INSERT INTO tb_navigation (name, type, "FROM", url) VALUES ('${name}', '${type}', ${from}, '${url}');`);
+    const result = await eval(`INSERT INTO tb_navigation (name, type, "FROM", url) VALUES ('${escape(name)}', '${escape(type)}', ${escape(from)}, '${escape(url)}');`);
     if(result.rowCount == 1) {
       return '提交成功'
     }else {
@@ -34,10 +34,11 @@ router.get('/list-all', (req, res, next) => {
         tb_navigation.name,
         type,
         url,
+        status,
         tb_navigation."FROM" from_id,
         tb_account.name from_name
           FROM tb_navigation
-            INNER JOIN tb_account ON tb_navigation."FROM" = tb_account.id;
+            INNER JOIN tb_account ON tb_navigation."FROM" = tb_account.id order by id desc;
     `);
     return result.rows;
   })().then(result => res.json(new SuccessModel(result))).catch(err => res.json(new ErrorModel(err)));

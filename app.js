@@ -28,6 +28,7 @@ app.use('/api/account', require('./routes/api/account'));
 app.use('/api/blog', require('./routes/api/blog'));
 app.use('/api/navigation', require('./routes/api/navigation'));
 app.use('/api/translation', require('./routes/api/translation'));
+app.use('/api/say-board', require('./routes/api/say-board'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
