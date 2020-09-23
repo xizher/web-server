@@ -1,77 +1,89 @@
-const express = require('express');
-const router = express.Router();
-const { SuccessModel, ErrorModel } = require('../../model/resModel');
-const { eval } = require('../..//utils/pgUtils');
-const { numberPattern } = require('../../config/pattern');
+const express = require('express')
+const router = express.Router()
+
+const { numberPattern } = WXZ.Pattern
+const { SuccessModel, ErrorModel } = WXZ.Model.Response
+const { eval } = WXZ.SQL.PostgreSQL
+
+//#region 逻辑代码
+
+const addBlog = async ({ title, desc, content, sides }) => {
+  let sides_str = '{'
+  for (let i = 0; i < sides.length; i++) {
+    sides_str = `${sides_str}"${escape(sides[i])}"${i == sides.length - 1 ? '}' : ','}`
+  }
+  const sql = `INSERT INTO tb_blog (title, description, content, sides, create_time)
+    VALUES ('${escape(title)}', '${escape(desc)}', '${escape(content)}', '${sides_str}', ${new Date().getTime()});`
+  const result = await eval(sql)
+  if (result.rowCount == 1) {
+    return Promise.resolve({
+      command: result.command,
+      rowCount: result.rowCount,
+    })
+  }
+  return Promise.reject(result)
+}
+
+const getBlogList = () => {
+  const sql = `SELECT id, title, description, sides, create_time, modify_time, view_count, good_count
+    FROM tb_blog ORDER BY create_time DESC;`
+  return eval(sql)
+}
+
+const getBlogById = async ({ id }) => {
+  if (!numberPattern.test(id)) {
+    return Promise.reject('输入信息格式错误')
+  }
+  const sql = `SELECT content FROM tb_blog WHERE id = ${id};`
+  const result = await eval(sql)
+  if (result.rowCount != 1) {
+    return Promise.reject(result);
+  }
+  return Promise.resolve({
+    id, content: unescape(result.rows[0].content)
+  })
+}
+
+const plueBlogInfo = async ({ id, type }) => {
+  if (!numberPattern.test(id)) {
+    return Promise.reject('输入信息格式错误')
+  }
+  const sql = `UPDATE tb_blog SET ${type}=${type}+1 WHERE id = ${id};`
+  await eval(sql)
+  return Promise.resolve('已更新')
+}
+
+//#endregion
 
 router.post('/add', (req, res, next) => {
-  const { title, desc, content, sides } = req.body;
-  let sides_str = '{';
-  for (let i = 0; i < sides.length; i++) {
-    const item = sides[i];
-    if(i == sides.length - 1) {
-      sides_str = `${sides_str}"${item}"}`
-    }else {
-      sides_str = `${sides_str}"${item}",`
-    }
-  }
-  eval(`INSERT INTO tb_blog (title, description, content, sides, create_time) VALUES ('${title}', '${desc}', '${escape(content)}', '${sides_str}', ${new Date().getTime()});`)
-    .then(_ => res.json(new SuccessModel('博客更新成功')))
-    .catch(err => {
-      console.log(err);
-      res.json(new ErrorModel('网络异常'));
-    });
-});
+  addBlog(req.body)
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
+})
 
 router.get('/list', (req, res, next) => {
-  eval(`SELECT id, title, description, sides, create_time, modify_time, view_count, good_count FROM tb_blog ORDER BY create_time desc;`)
+  getBlogList()
     .then(result => res.json(new SuccessModel(result.rows)))
-    .catch(err => {
-      console.log(err);
-      res.json(new ErrorModel('网络异常'));
-    });
-});
+    .catch(err => res.json(new ErrorModel(err)))
+})
 
 router.get('/get', (req, res, next) => {
-  (async () => {
-    const { id } = req.query;
-    if(!numberPattern.test(id)) {
-      return Promise.reject('输入信息格式错误')
-    }
-    const result = await eval(`SELECT content FROM tb_blog WHERE id = ${id};`);
-    if(result.rowCount != 1) {
-      return Promise.reject('博客内容获取失败');
-    }
-    return {
-      id, content: unescape(result.rows[0].content)
-    };
-  })().then(result => res.json(new SuccessModel(result))).catch(err => res.json(new ErrorModel(err)));
-});
+  getBlogById(req.query)
+    .then(plueBlogInfo({...req.query, type: 'view_count'}))
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
+})
 
 router.post('/viewed', (req, res, next) => {
-  (async () => {
-    const { id } = req.body;
-    if(!numberPattern.test(id)) {
-      return Promise.reject('输入信息格式错误')
-    }
-    const result = await eval(`UPDATE tb_blog SET view_count=view_count+1 WHERE id = ${id};`);
-    return {
-      id, result: result.rowCount == 1
-    };
-  })().then(result => res.json(new SuccessModel(result))).catch(err => res.json(new ErrorModel(err)));
-});
+  plueBlogInfo({ ...req.body, type: 'view_count' })
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
+})
 
 router.post('/good', (req, res, next) => {
-  (async () => {
-    const { id } = req.body;
-    if(!numberPattern.test(id)) {
-      return Promise.reject('输入信息格式错误')
-    }
-    const result = await eval(`UPDATE tb_blog SET good_count=good_count+1 WHERE id = ${id};`);
-    return {
-      id, result: result.rowCount == 1
-    };
-  })().then(result => res.json(new SuccessModel(result))).catch(err => res.json(new ErrorModel(err)));
-});
+  plueBlogInfo({ ...req.body, type: 'good_count' })
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
+})
 
-module.exports = router;
+module.exports = router

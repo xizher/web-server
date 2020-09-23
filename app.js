@@ -8,6 +8,9 @@ const indexRouter = require('./routes/index');
 
 const app = express();
 
+require('./WXZ')
+
+//#region  跨域配置
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Content-Length,Authorization,Accept,yourHeaderFeild");
@@ -16,6 +19,7 @@ app.all('*', function(req, res, next) {
   res.header("Content-Type", "application/json;charset=utf-8");
   next();
 });
+//#endregion
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -23,12 +27,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+//#region 路由注册
 app.use('/', indexRouter);
 app.use('/api/account', require('./routes/api/account'));
 app.use('/api/blog', require('./routes/api/blog'));
 app.use('/api/navigation', require('./routes/api/navigation'));
 app.use('/api/translation', require('./routes/api/translation'));
 app.use('/api/say-board', require('./routes/api/say-board'));
+//#endregion
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

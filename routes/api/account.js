@@ -1,44 +1,58 @@
-const express = require('express');
-const router = express.Router();
-const { SuccessModel, ErrorModel } = require('../../model/resModel');
-const { eval } = require('../..//utils/pgUtils');
-const { namePattern, pwdPattern, emailPattern } = require('../../config/pattern');
+const express = require('express')
+const router = express.Router()
+
+const { namePattern, pwdPattern, emailPattern } = WXZ.Pattern
+const { SuccessModel, ErrorModel } = WXZ.Model.Response
+const { eval } = WXZ.SQL.PostgreSQL
+
+//#region 逻辑代码
+const addAccount = async ({ name, pwd, email }) => {
+  if (!(namePattern.test(name) && pwdPattern.test(pwd) && emailPattern.test(email))) {
+    return Promise.reject('输入信息格式错误')
+  }
+  let sql = `SELECT COUNT(name) FROM tb_account WHERE name = '${name}';`
+  const count = (await eval(sql)).rows[0].count
+  if (count != 0) {
+    return Promise.reject('用户已存在')
+  }
+  sql = `INSERT INTO tb_account (name, pwd, create_time, email) 
+    VALUES ('${name}', '${pwd}', ${new Date().getTime()},'${email}');`
+  const result = await eval(sql)
+  if (result.rowCount == 1) {
+    return Promise.resolve({
+      command: result.command,
+      rowCount: result.rowCount,
+    })
+  }
+  return Promise.reject(result)
+}
+
+const getAccount = async ({ name, pwd }) => {
+  if (!(namePattern.test(name) && pwdPattern.test(pwd))) {
+    return Promise.reject('输入信息格式错误');
+  }
+  const sql = `SELECT id, name, create_time, email, is_admin 
+    FROM tb_account WHERE name = '${name}' AND pwd = '${pwd}';`
+  const result = await eval(sql)
+  if (result.rowCount == 0) {
+    return Promise.reject('用户不存在或密码错误')
+  }
+  const info = result.rows[0]
+  info.create_time = parseInt(info.create_time)
+  return Promise.resolve(info)
+}
+//#endregion
 
 router.post('/add', (req, res, next) => {
-  (async () => {
-    const { name, pwd, email } = req.body;
-    if(!namePattern.test(name) || !pwdPattern.test(pwd) || !emailPattern.test(email)) {
-      return Promise.reject('输入信息格式错误');
-    }
-    const count = (await eval(`SELECT COUNT(name) FROM tb_account WHERE name = '${name}'`)).rows[0].count;
-    if(count == 0) {
-      const result = await eval(`INSERT INTO tb_account (name, pwd, create_time, email) VALUES ('${name}', '${pwd}', ${new Date().getTime()},'${email}')`);
-      if(result.rowCount == 1) {
-        return '注册成功'
-      }else {
-        console.log(result);
-        return Promise.reject('网络异常');
-      }
-    }else{
-      return Promise.reject('用户名已存在');
-    }
-  })().then(result => res.json(new SuccessModel(result))).catch(err => res.json(new ErrorModel(err)))
-});
-
-router.get('/get', (req, res, next) => {
-  (async () => {
-    const { name, pwd } = req.query;
-    if(!namePattern.test(name) || !pwdPattern.test(pwd)) {
-      return Promise.reject('输入信息格式错误');
-    }
-    const result = await eval(`SELECT id, name, create_time, email, is_admin FROM tb_account WHERE name = '${name}' AND pwd = '${pwd}'`);
-    if(result.rowCount == 0) {
-      return Promise.reject('用户名不存在或密码错误');
-    }
-    let tb_account_info = result.rows[0];
-    tb_account_info.create_time = parseInt(tb_account_info.create_time);
-    return tb_account_info;
-  })().then(result => res.json(new SuccessModel(result))).catch(err => res.json(new ErrorModel(err)))
+  addAccount(req.body)
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
 })
 
-module.exports = router;
+router.get('/get', (req, res, next) => {
+  getAccount(req.query)
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
+})
+
+module.exports = router
