@@ -34,7 +34,7 @@ const listChat = async () => {
     const ids = item.toc.split('-')
     const func = (parent, id_list) => {
       if (id_list.length == 1) {
-        parent.push({ ...item, children: [] })
+        parent.push({ ...item, children: [], show_children: false, reply_txt: '' })
         parent.sort(((obj1, obj2) => parseInt(obj2.create_time) - parseInt(obj1.create_time)))
         return
       }
