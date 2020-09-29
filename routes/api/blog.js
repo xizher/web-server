@@ -24,10 +24,16 @@ const addBlog = async ({ title, desc, content, sides }) => {
   return Promise.reject(result)
 }
 
-const getBlogList = () => {
-  const sql = `SELECT id, title, description, sides, create_time, modify_time, view_count, good_count
+const getBlogList = async () => {
+  const sql = `SELECT id, title, description, sides, create_time, modify_time, view_count, good_count, visible
     FROM tb_blog ORDER BY create_time DESC;`
-  return eval(sql)
+  const result = await eval(sql)
+  console.log(result.rows)
+  return Promise.resolve(result.rows.map(item => {
+    item.create_time = Number(item.create_time)
+    if (item.modify_time) item.modify_time = Number(item.modify_time)
+    return item
+  }))
 }
 
 const getBlogById = async ({ id }) => {
@@ -63,7 +69,7 @@ router.post('/add', (req, res, next) => {
 
 router.get('/list', (req, res, next) => {
   getBlogList()
-    .then(result => res.json(new SuccessModel(result.rows)))
+    .then(result => res.json(new SuccessModel(result)))
     .catch(err => res.json(new ErrorModel(err)))
 })
 
