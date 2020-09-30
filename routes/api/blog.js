@@ -10,7 +10,7 @@ const { eval } = WXZ.SQL.PostgreSQL
 const addBlog = async ({ title, desc, content, sides }) => {
   let sides_str = '{'
   for (let i = 0; i < sides.length; i++) {
-    sides_str = `${sides_str}"${escape(sides[i])}"${i == sides.length - 1 ? '}' : ','}`
+    sides_str = `${sides_str}"${sides[i]}"${i == sides.length - 1 ? '}' : ','}`
   }
   const sql = `INSERT INTO tb_blog (title, description, content, sides, create_time)
     VALUES ('${escape(title)}', '${escape(desc)}', '${escape(content)}', '${sides_str}', ${new Date().getTime()});`
@@ -31,7 +31,7 @@ const getBlogList = async () => {
   console.log(result.rows)
   return Promise.resolve(result.rows.map(item => {
     item.create_time = Number(item.create_time)
-    if (item.modify_time) item.modify_time = Number(item.modify_time)
+    item.modify_time = item.modify_time ? Number(item.modify_time) : item.create_time
     return item
   }))
 }
@@ -40,14 +40,17 @@ const getBlogById = async ({ id }) => {
   if (!numberPattern.test(id)) {
     return Promise.reject('输入信息格式错误')
   }
-  const sql = `SELECT content FROM tb_blog WHERE id = ${id};`
+  const sql = `SELECT * FROM tb_blog WHERE id = ${id};`
   const result = await eval(sql)
   if (result.rowCount != 1) {
     return Promise.reject(result);
   }
-  return Promise.resolve({
-    id, content: unescape(result.rows[0].content)
-  })
+  result.rows[0].title = unescape(result.rows[0].title)
+  result.rows[0].content = unescape(result.rows[0].content)
+  result.rows[0].description = unescape(result.rows[0].description)
+  result.rows[0].create_time = Number(result.rows[0].create_time)
+  result.rows[0].modify_time = result.rows[0].modify_time ? Number(result.rows[0].modify_time) : result.rows[0].create_time
+  return Promise.resolve(result.rows[0])
 }
 
 const plueBlogInfo = async ({ id, type }) => {
@@ -57,6 +60,15 @@ const plueBlogInfo = async ({ id, type }) => {
   const sql = `UPDATE tb_blog SET ${type}=${type}+1 WHERE id = ${id};`
   await eval(sql)
   return Promise.resolve('已更新')
+}
+
+const setVisible = async ({ visible, id }) => {
+  if (typeof visible != 'boolean' || !numberPattern.test(id)) {
+    return Promise.reject('输入信息格式错误')
+  }
+  const sql = `UPDATE tb_blog SET visible=${visible} WHERE id=${id};`
+  await eval(sql)
+  return Promise.resolve('更新成功')
 }
 
 //#endregion
@@ -88,6 +100,12 @@ router.post('/viewed', (req, res, next) => {
 
 router.post('/good', (req, res, next) => {
   plueBlogInfo({ ...req.body, type: 'good_count' })
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
+})
+
+router.post('/set-visible', (req, res, next) => {
+  setVisible(req.body)
     .then(result => res.json(new SuccessModel(result)))
     .catch(err => res.json(new ErrorModel(err)))
 })

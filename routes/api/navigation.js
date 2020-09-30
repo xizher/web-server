@@ -37,7 +37,7 @@ const checkNav = async ({agree, id}) => {
   if (typeof agree != 'boolean' || !numberPattern.test(id)) {
     return Promise.reject('输入信息格式错误')
   }
-  const sql = `UPDATE tb_navigation SET status='${agree?'v':'x'}' WHERE id=${id}`
+  const sql = `UPDATE tb_navigation SET status='${agree?'v':'x'}' WHERE id=${id};`
   await eval(sql)
   return Promise.resolve('更新成功')
 }
