@@ -30,6 +30,9 @@ const getBlogList = async () => {
   const result = await eval(sql)
   console.log(result.rows)
   return Promise.resolve(result.rows.map(item => {
+    item.title = unescape(item.title)
+    item.content = unescape(item.content)
+    item.description = unescape(item.description)
     item.create_time = Number(item.create_time)
     item.modify_time = item.modify_time ? Number(item.modify_time) : item.create_time
     return item
