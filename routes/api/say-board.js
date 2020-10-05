@@ -8,7 +8,7 @@ const { eval } = WXZ.SQL.PostgreSQL
 //#region 逻辑代码
 
 const addChat = async ({ toc, from_id, content }) => {
-  if (!numberPattern.test(from_id)) {
+  if (!numberPattern.test(from_id) || !content || !toc) {
     return Promise.reject('输入信息格式错误')
   }
   const sql = `INSERT INTO tb_sayboard (toc, from_id, content, create_time)
