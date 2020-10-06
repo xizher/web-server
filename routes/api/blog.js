@@ -24,19 +24,26 @@ const addBlog = async ({ title, desc, content, sides }) => {
   return Promise.reject(result)
 }
 
-const getBlogList = async () => {
-  const sql = `SELECT id, title, description, sides, create_time, modify_time, view_count, good_count, visible
-    FROM tb_blog ORDER BY create_time DESC;`
+const getBlogList = async ({ limit = null, offset = null } = {}) => {
+  let sql = `SELECT id, title, description, sides, create_time, modify_time, view_count, good_count, visible, content
+    FROM tb_blog ORDER BY create_time DESC`
+  if (numberPattern.test(limit) && numberPattern.test(offset)) {
+    sql = sql + ` LIMIT ${limit} OFFSET ${offset};`
+  }
   const result = await eval(sql)
-  console.log(result.rows)
-  return Promise.resolve(result.rows.map(item => {
-    item.title = unescape(item.title)
-    item.content = unescape(item.content)
-    item.description = unescape(item.description)
-    item.create_time = Number(item.create_time)
-    item.modify_time = item.modify_time ? Number(item.modify_time) : item.create_time
-    return item
-  }))
+  sql = 'select COUNT(id) from tb_blog;'
+  const count = (await eval(sql)).rows[0].count
+  return Promise.resolve({
+    items: result.rows.map(item => {
+      item.title = unescape(item.title)
+      item.content = unescape(item.content)
+      item.description = unescape(item.description)
+      item.create_time = Number(item.create_time)
+      item.modify_time = item.modify_time ? Number(item.modify_time) : item.create_time
+      return item
+    }),
+    total: parseInt(count)
+  })
 }
 
 const getBlogById = async ({ id }) => {
@@ -74,6 +81,19 @@ const setVisible = async ({ visible, id }) => {
   return Promise.resolve('更新成功')
 }
 
+const updateBlog = async ({ title, description, content, sides, id }) => {
+  if (!numberPattern.test(id)) {
+    return Promise.reject('输入信息格式错误')
+  }
+  let sides_str = '{'
+  for (let i = 0; i < sides.length; i++) {
+    sides_str = `${sides_str}"${sides[i]}"${i == sides.length - 1 ? '}' : ','}`
+  }
+  const sql = `UPDATE tb_blog SET title='${escape(title)}', description='${escape(description)}', content='${escape(content)}', sides='${sides_str}', modify_time=${new Date().getTime()} WHERE id=${id}`
+  await eval(sql)
+  return Promise.resolve('更新成功')
+}
+
 //#endregion
 
 router.post('/add', (req, res, next) => {
@@ -83,7 +103,7 @@ router.post('/add', (req, res, next) => {
 })
 
 router.get('/list', (req, res, next) => {
-  getBlogList()
+  getBlogList(req.query)
     .then(result => res.json(new SuccessModel(result)))
     .catch(err => res.json(new ErrorModel(err)))
 })
@@ -109,6 +129,12 @@ router.post('/good', (req, res, next) => {
 
 router.post('/set-visible', (req, res, next) => {
   setVisible(req.body)
+    .then(result => res.json(new SuccessModel(result)))
+    .catch(err => res.json(new ErrorModel(err)))
+})
+
+router.post('/update', (req, res, next) => {
+  updateBlog(req.body)
     .then(result => res.json(new SuccessModel(result)))
     .catch(err => res.json(new ErrorModel(err)))
 })
