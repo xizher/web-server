@@ -25,11 +25,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
 const express = __importStar(require("express"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const path = __importStar(require("path"));
 const morgan_1 = __importDefault(require("morgan"));
+const response_model_1 = require("./models/response-model");
 const index_1 = __importDefault(require("./routes/index"));
+const blog_1 = __importDefault(require("./routes/api/blog"));
 function useRoutes(app) {
     app.use('/', index_1.default);
+    app.use('/api/blog', blog_1.default);
+    app.use((req, res, next) => {
+        res.json(new response_model_1.ErrorModel('404'));
+    });
+    app.use((err, req, res, next) => {
+        res.locals.message = err.message;
+        res.locals.error = req.app.get('env') === 'development' ? err : {};
+        res.status(err.status || 500);
+        res.render('error');
+    });
 }
 exports.app = require('express')();
 // 跨域
@@ -45,16 +56,4 @@ exports.app.use(morgan_1.default('dev'));
 exports.app.use(express.json());
 exports.app.use(express.urlencoded({ extended: false }));
 exports.app.use(cookie_parser_1.default());
-exports.app.use(express.static(path.join(__dirname, 'public')));
 useRoutes(exports.app);
-exports.app.use((req, res, next) => {
-    res.json({
-        t: '404'
-    });
-});
-exports.app.use((err, req, res, next) => {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-    res.status(err.status || 500);
-    res.render('error');
-});

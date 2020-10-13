@@ -2,10 +2,24 @@ import * as express from 'express';
 import cookieParser from 'cookie-parser';
 import * as path from 'path';
 import logger from 'morgan';
+import { ErrorModel } from './models/response-model'
 import IndexRouter from './routes/index'
+import BlogRouter from './routes/api/blog'
 
 function useRoutes (app : express.Application) {
   app.use('/', IndexRouter)
+  app.use('/api/blog', BlogRouter)
+
+  
+  app.use((req : express.Request, res : express.Response, next : express.NextFunction) => {
+    res.json(new ErrorModel('404'))
+  });
+  app.use((err, req : express.Request, res : express.Response, next : express.NextFunction) => {
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+    res.status(err.status || 500);
+    res.render('error');
+  });
 }
 
 export const app : express.Application = require('express')();
@@ -24,19 +38,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
 useRoutes(app)
 
-app.use((req : express.Request, res : express.Response, next : express.NextFunction) => {
-  res.json({
-    t: '404'
-  })
-});
-
-app.use((err, req : express.Request, res : express.Response, next : express.NextFunction) => {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-  res.status(err.status || 500);
-  res.render('error');
-});
