@@ -1,11 +1,9 @@
-import { NextFunction, Request, Response, Router } from 'express';
+import { Router } from "express";
 
-const router : Router = Router();
+export interface IRouterClass {
+  router: Router
+}
 
-router.get('/', (req : Request, res : Response, next: NextFunction) => {
-  res.json({
-    t: 'test-ts'
-  })
-})
-
-export default router;
+export * from './test'
+export * from './api/blog'
+export * from './api/nav'

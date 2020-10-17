@@ -1,43 +1,54 @@
-import * as express from 'express';
 import cookieParser from 'cookie-parser';
-import * as path from 'path';
 import logger from 'morgan';
 import { ErrorModel } from './models/response-model'
-import IndexRouter from './routes/index'
-import BlogRouter from './routes/api/blog'
+import { Application, json, NextFunction, Request, Response, Router, urlencoded } from 'express';
+import { IRouterClass } from './routes';
 
-function useRoutes (app : express.Application) {
-  app.use('/', IndexRouter)
-  app.use('/api/blog', BlogRouter)
+export class AppManager {
 
-  
-  app.use((req : express.Request, res : express.Response, next : express.NextFunction) => {
-    res.json(new ErrorModel('404'))
-  });
-  app.use((err, req : express.Request, res : express.Response, next : express.NextFunction) => {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-    res.status(err.status || 500);
-    res.render('error');
-  });
+  public app : Application;
+
+  constructor () {
+    this.app = require('express')();
+  }
+
+  public useCrossDomain () : AppManager {
+    this.app.use('*', (req : Request, res : Response, next : NextFunction) => {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type,Content-Length,Authorization,Accept,yourHeaderFeild');
+      res.header('Access-Control-Allow-Methods','PUT,POST,GET,DELETE,OPTIONS');
+      res.header('X-Powered-By',' 3.2.1');
+      res.header('Content-Type', 'application/json;charset=utf-8');
+      next();
+    });
+    return this;
+  }
+
+  public useExtension () : AppManager {
+    this.app.use(logger('dev'));
+    this.app.use(json());
+    this.app.use(urlencoded({ extended: false }));
+    this.app.use(cookieParser());
+    return this;
+  }
+
+  public useRouter (path : string, routerObj: IRouterClass) : AppManager {
+    this.app.use(path, routerObj.router);
+    return this;
+  }
+
+  public useLastRouter () : AppManager {
+    this.app.use((req : Request, res : Response, next : NextFunction) => {
+      res.json(new ErrorModel('404'))
+    });
+    this.app.use((err, req : Request, res : Response, next : NextFunction) => {
+      res.locals.message = err.message;
+      res.locals.error = req.app.get('env') === 'development' ? err : {};
+      res.status(err.status || 500);
+      res.render('error');
+    });
+    return this;
+  }
+
 }
-
-export const app : express.Application = require('express')();
-
-// 跨域
-app.use('*', (req : express.Request, res : express.Response, next : express.NextFunction) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type,Content-Length,Authorization,Accept,yourHeaderFeild');
-  res.header('Access-Control-Allow-Methods','PUT,POST,GET,DELETE,OPTIONS');
-  res.header('X-Powered-By',' 3.2.1')
-  res.header('Content-Type', 'application/json;charset=utf-8');
-  next();
-});
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-
-useRoutes(app)
 
