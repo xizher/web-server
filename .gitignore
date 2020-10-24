@@ -1,4 +1,6 @@
-conf
-old
-build
-node_modules
+src/conf/*
+!src/conf/readme.txt
+
+/old
+/build
+/node_modules
