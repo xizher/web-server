@@ -1,5 +1,5 @@
 import { Pool, QueryResult } from 'pg';
-import { POSTGRESQL_CONF } from '../config/db.conf';
+import { POSTGRESQL_CONF } from '../conf/db.conf';
 
 export function evalSql (sql : string) : Promise<QueryResult<any>> {
   return new Promise((resolve : Function, reject : Function) => {
