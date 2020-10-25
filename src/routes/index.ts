@@ -7,3 +7,4 @@ export interface IRouterClass {
 export * from './test'
 export * from './api/blog'
 export * from './api/nav'
+export * from './api/pwd'

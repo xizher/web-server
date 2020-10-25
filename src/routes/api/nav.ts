@@ -58,10 +58,11 @@ export class NavRouter implements IRouterClass {
       item.name = unescape(item.name);
       item.type = unescape(item.type);
       item.url = unescape(item.url);
+      return item
     })
     sql = `SELECT COUNT(id) FROM tb_nav`
     const { count } = (await evalSql(sql)).rows[0]
-    return Promise.resolve({ items: result.rows, total: Number(count) })
+    return Promise.resolve({ items, total: Number(count) })
   }
 
   private async _updateNav ({ name, type, url, visible, id }
@@ -79,7 +80,7 @@ export class NavRouter implements IRouterClass {
 
   private async _addNav ({ name, type, url } : INavItem) : Promise<void> {
     const sql : string = `INSERT INTO tb_nav (name, type, url)
-      VALUES ('${name}', '${type}', '${url}')
+      VALUES ('${escape(name)}', '${escape(type)}', '${escape(url)}')
     `;
     await evalSql(sql);
     return Promise.resolve();
