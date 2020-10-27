@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { IRouterClass } from "..";
 import { ErrorModel, SuccessModel } from "../../models/response-model";
+import { RouterModel } from "../../models/router-model";
 import { evalSql } from "../../utils/pg-utils";
 import { numberRegExp, unsignedIntegerRegExp } from "../../utils/reg-exp";
 
@@ -11,36 +12,62 @@ interface IPwdItem {
   id?: string | number
 }
 
-export class PwdRouter implements IRouterClass {
+export class PwdRouter extends RouterModel {
 
   public router: Router
-
+ 
   constructor () {
-    this.router = Router()
+    super()
+    this.baseTable = 'tb_pwd'
     this._initRouter()
   }
 
   private _initRouter () {
-    this.router.post('/add', (req: Request, res: Response) => {
-      this._addPwd(req.body)
-        .then(() => res.json(new SuccessModel(true)))
-        .catch((err: Error) => res.json(new ErrorModel(err.message)))
+    this.router
+    // 参数验证
+    .use('/', (req, res, next) => {
+      console.log(req.headers)
+      next()
     })
-    this.router.get('/list', (req: Request, res: Response) => {
-      this._getPwdList(req.query as any)
+    // 查询
+    .get('/', (req, res, next) => {
+      this.query(req.query)
         .then(result => res.json(new SuccessModel(result)))
-        .catch((err: Error) => res.json(new ErrorModel(err.message)))
+        .catch(err => res.json(new ErrorModel(err.message)))
     })
-    this.router.post('/update', (req: Request, res: Response) => {
-      this._updatePwd(req.body)
-        .then(() => res.json(new SuccessModel(true)))
-        .catch((err: Error) => res.json(new ErrorModel(err.message)))
+    // 增加
+    .post('/', (req, res, next) => {
+
     })
-    this.router.post('/del', (req: Request, res: Response) => {
-      this._delPwd(req.body)
-        .then(() => res.json(new SuccessModel(true)))
-        .catch((err: Error) => res.json(new ErrorModel(err.message)))
+    // 更新
+    .put('/', (req, res, next) => {
+
     })
+    // 删除
+    .delete('/', (req, res, next) => {
+
+    })
+
+    // this.router.post('/add', (req: Request, res: Response) => {
+    //   this._addPwd(req.body)
+    //     .then(() => res.json(new SuccessModel(true)))
+    //     .catch((err: Error) => res.json(new ErrorModel(err.message)))
+    // })
+    // this.router.get('/list', (req: Request, res: Response) => {
+    //   this._getPwdList(req.query as any)
+    //     .then(result => res.json(new SuccessModel(result)))
+    //     .catch((err: Error) => res.json(new ErrorModel(err.message)))
+    // })
+    // this.router.post('/update', (req: Request, res: Response) => {
+    //   this._updatePwd(req.body)
+    //     .then(() => res.json(new SuccessModel(true)))
+    //     .catch((err: Error) => res.json(new ErrorModel(err.message)))
+    // })
+    // this.router.post('/del', (req: Request, res: Response) => {
+    //   this._delPwd(req.body)
+    //     .then(() => res.json(new SuccessModel(true)))
+    //     .catch((err: Error) => res.json(new ErrorModel(err.message)))
+    // })
   }
 
   private async _addPwd ({ name, pwd, bz = '' }: IPwdItem) : Promise<void> {

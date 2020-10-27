@@ -1,8 +1,9 @@
-import { Request, Response, Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import { ErrorModel, SuccessModel } from "../../models/response-model";
 import { evalSql } from "../../utils/pg-utils";
 import { numberRegExp, unsignedIntegerRegExp } from "../../utils/reg-exp";
 import { IRouterClass } from "..";
+// import { routerAction } from "../../utils/router-utils";
 
 interface IBlogItem {
   title: string
@@ -30,6 +31,10 @@ export class BlogRouter implements IRouterClass {
   }
 
   private _initRouter () {
+    // routerAction(this.router, 'use', '/').then(({ req, next }) => {
+    //   console.log(req.url)
+    //   next()
+    // })
     this.router.get('/list', (req: Request, res: Response) => {
       this._getBlogList(req.query as any)
         .then(result => res.json(new SuccessModel(result)))
