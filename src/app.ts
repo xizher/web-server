@@ -14,7 +14,7 @@ export class AppManager {
 
   public useCrossDomain () : AppManager {
     this.app.use('*', (req : Request, res : Response, next : NextFunction) => {
-      res.header('Access-Control-Allow-Origin', 'http://19.129.238.129');
+      res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
       res.header('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type,Content-Length,Authorization,Accept,yourHeaderFeild');
       res.header('Access-Control-Allow-Methods','PUT,POST,GET,DELETE,OPTIONS');
       res.header('X-Powered-By',' 3.2.1');

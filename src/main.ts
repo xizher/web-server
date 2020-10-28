@@ -2,6 +2,8 @@ import { AppManager } from './app';
 import { BlogRouter, NavRouter, PwdRouter, TestRouter } from './routes';
 import { Server } from './server';
 
+import './extensions'
+
 const { app } = new AppManager()
   .useCrossDomain()
   .useExtension()

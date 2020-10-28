@@ -1,34 +1,95 @@
 import { NextFunction, Router, Request, Response } from 'express'
 import { evalSql } from '../utils/pg-utils'
+import { ErrorModel, SuccessModel } from './response-model'
 import { ISqlInsertParams, ISqlSelectParams, ISqlUpdateParams, paraseInsertSql, parseSelectSql, parseUpdateSql } from './sql-model'
 
 export interface IRouterModel {
   router: Router
 }
 
-type ActionType = 'use' | 'get' | 'post' | 'put' | 'delete'
-
 export class RouterModel implements IRouterModel {
   
   public router: Router
   public baseTable: string
+  public insertFields: string[] = []
+  public updateFields: string[] = []
 
   constructor () {
     this.router = Router()
+    this._initRouter()
   }
 
-  public async add (params: ISqlInsertParams) : Promise<void> {
-    const sql = paraseInsertSql(this.baseTable, params)
+  public checkLegitimate (params: Request) :boolean {
+    return true
+  }
+
+  private _initRouter () : void {
+    
+    this.router
+    // 参数验证
+    .use('/', (req, res, next) => {
+      if (this.checkLegitimate(req)) {
+        next()
+      } else {
+        res.json(new ErrorModel('error input'))
+      }
+    })
+    // 查询
+    .get('/', (req, res, next) => {
+      this.query(req.query)
+        .then(result => res.json(new SuccessModel(result)))
+        .catch(err => res.json(new ErrorModel(err.message)))
+    })
+    // 增加
+    .post('/', (req, res, next) => {
+      this.insert(req.body)
+        .then(() => res.json(new SuccessModel(true)))
+        .catch(err => res.json(new ErrorModel(err.message)))
+    })
+    // 更新
+    .put('/', (req, res, next) => {
+      this.update(req.body)
+        .then(() => res.json(new SuccessModel(true)))
+        .catch(err => res.json(new ErrorModel(err.message)))
+    })
+    // 删除
+    .delete('/', (req, res, next) => {
+      this.delete(req.body)
+        .then(() => res.json(new SuccessModel(true)))
+        .catch(err => res.json(new ErrorModel(err.message)))
+    })
+  }
+
+  public async insert (params: any) : Promise<void> {
+    const insertParams: ISqlInsertParams = {
+      keys: [], values: []
+    }
+    for (const key in params) {
+      if (key.contain(this.insertFields)) {
+        insertParams.keys.push(key)
+        insertParams.values.push(params[key])
+      }
+    }
+    const sql = paraseInsertSql(this.baseTable, insertParams)
     await evalSql(sql)
   }
 
-  public async del ({ id }: { id: number }) {
+  public async delete ({ id }: { id: number }) {
     const sql = `DELETE FROM tb_pwd WHERE id=${id}`
     await evalSql(sql)
   }
 
-  public async update (params: ISqlUpdateParams) {
-    const sql = parseUpdateSql(this.baseTable, params)
+  public async update (params: any) {
+    const updateParams: ISqlUpdateParams = {
+      keys: [], values: [], id: params.id
+    }
+    for (const key in params) {
+      if (key.contain(this.updateFields)) {
+        updateParams.keys.push(key)
+        updateParams.values.push(params[key])
+      }
+    }
+    const sql = parseUpdateSql(this.baseTable, updateParams)
     await evalSql(sql)
   }
 
