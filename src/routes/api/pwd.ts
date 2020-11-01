@@ -1,9 +1,5 @@
-import { Request, Response, Router } from "express";
-import { IRouterClass } from "..";
-import { ErrorModel, SuccessModel } from "../../models/response-model";
+import { Request } from "express";
 import { RouterModel } from "../../models/router-model";
-import { evalSql } from "../../utils/pg-utils";
-import { numberRegExp, unsignedIntegerRegExp } from "../../utils/reg-exp";
 
 interface IPwdItem {
   name: string
@@ -23,7 +19,6 @@ export class PwdRouter extends RouterModel {
 
   
   public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
-    
     const { limit, offset } = query as any
     const {
       pwd, id
