@@ -80,6 +80,7 @@ export class RouterModel implements IRouterModel {
   }
 
   public async update (params: any) {
+    console.log(params)
     const updateParams: ISqlUpdateParams = {
       keys: [], values: [], id: params.id
     }

@@ -20,9 +20,14 @@ export class PwdRouter extends RouterModel {
   
   public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
     const { limit, offset } = query as any
-    const {
+    let {
       pwd, id
     } = body
+    if (!id) {
+      id = query.id
+      body.id = id
+    }
+    console.log(id)
     const {} = params
     const {} = headers
     // 分页查询情况
@@ -30,7 +35,7 @@ export class PwdRouter extends RouterModel {
       return false
     }
     // 口令格式
-    if (pwd && typeof (pwd !== 'string' || pwd.length % 32 !== 0)) {
+    if (pwd && (typeof pwd !== 'string' || pwd.length % 32 !== 0)) {
       return false
     }
     // 标识符格式

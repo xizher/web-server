@@ -86,7 +86,7 @@ export function paraseInsertSql (table: string, insertParams: ISqlInsertParams) 
   const { keys, values } = insertParams
   for (let i = 0; i < values.length; i++) {
     values[i] = typeof values[i] === 'string'
-      ? `'${escape(values[i])}'`
+      ? `'${values[i].indexOf('text[]') === 0 ? values[i].substring(6, values[i].length) : escape(values[i])}'`
       : values[i]
   }
   return `INSERT INTO ${table} (${keys.join(',')}) VALUES (${values.join(',')})`
@@ -97,7 +97,7 @@ export function parseUpdateSql (table: string, updateParams: ISqlUpdateParams) :
   let sql = `UPDATE ${table} SET`
   const updates = []
   for (let i = 0; i < values.length; i++) {
-    updates.push(`${keys[i]}=${typeof values[i] === 'string' ? `'${escape(values[i])}'` : values[i]}`)
+    updates.push(`${keys[i]}=${typeof values[i] === 'string' ? `'${values[i].indexOf('text[]') === 0 ? values[i].substring(6, values[i].length) : escape(values[i])}'` : values[i]}`)
   }
   return `${sql} ${updates.join(',')} WHERE id=${id}`
 }
