@@ -1,27 +1,20 @@
 import { Request } from "express";
 import { RouterModel } from "../../models/router-model";
 
-interface IPwdItem {
-  name: string
-  pwd: string
-  bz: string
-  id?: string | number
-}
-
-export class PwdRouter extends RouterModel {
+export class MoneyRouter extends RouterModel {
  
   constructor () {
     super()
-    this.baseTable = 'tb_pwd'
-    this.insertFields = ['name', 'pwd', 'bz']
-    this.updateFields = ['name', 'pwd', 'bz']
+    this.baseTable = 'tb_money'
+    this.insertFields = ['value', 'type', 'time', 'lonlat', 'remark']
+    this.updateFields = ['value', 'type', 'time', 'lonlat', 'remark']
   }
 
   
   public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
     const { limit, offset } = query as any
     let {
-      pwd, id
+      id, value, time
     } = body
     if (!id) {
       id = query.id
@@ -35,12 +28,16 @@ export class PwdRouter extends RouterModel {
     if (limit && offset && !(!isNaN(limit) && !isNaN(offset) && Number(limit) > -1 && Number(offset) > -1)) {
       return false
     }
-    // 口令格式
-    if (pwd && (typeof pwd !== 'string' || pwd.length % 32 !== 0)) {
+    // 标识符格式
+    if (id && isNaN(id)) {
       return false
     }
     // 标识符格式
-    if (id && isNaN(id)) {
+    if (value && isNaN(value)) {
+      return false
+    }
+    // 标识符格式
+    if (time && isNaN(time)) {
       return false
     }
     // 更新或删除操作没有传入id

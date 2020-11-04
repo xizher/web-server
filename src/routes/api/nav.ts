@@ -19,9 +19,15 @@ export class NavRouter extends RouterModel {
   public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
     
     const { limit, offset, visible } = query as any
-    const {
+    let {
       id
     } = body
+    if (!id) {
+      id = query.id
+      if (id) {
+        body.id = id
+      }
+    }
     const {} = params
     const {} = headers
     if (visible && typeof visible !== 'boolean') {
