@@ -77,7 +77,7 @@ export function parseSelectSql (table: string, selectParams: ISqlSelectParams) :
   const { limit, offset, order, where } = selectParams
   return `SELECT * FROM ${table}
     ${ where && `WHERE ${new SqlWhere(where).format()}` || ''}
-    ${ order && `ORDER ${new SqlOrder(order).format()}` || ''}
+    ${ order && order.length > 0 && `ORDER BY ${new SqlOrder(order).format()}` || ''}
     ${ limit != null && offset != null && `LIMIT ${limit} OFFSET ${offset}` || ''}
   `
 }

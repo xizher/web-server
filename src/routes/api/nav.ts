@@ -18,7 +18,7 @@ export class NavRouter extends RouterModel {
 
   public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
     
-    const { limit, offset, visible } = query as any
+    const { limit, offset, visible, order } = query as any
     let {
       id
     } = body
@@ -44,6 +44,12 @@ export class NavRouter extends RouterModel {
     // 更新或删除操作没有传入id
     if (method.contain(['PUT', 'DELETE']) && !id) {
       return false
+    }
+    // 排序配置
+    if (order && order.length > 0) {
+      query.order = order.map(item => JSON.parse(item))
+    } else {
+      query.order = null
     }
     return true
   }

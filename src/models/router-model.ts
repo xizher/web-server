@@ -75,12 +75,11 @@ export class RouterModel implements IRouterModel {
   }
 
   public async delete ({ id }: { id: number }) {
-    const sql = `DELETE FROM tb_pwd WHERE id=${id}`
+    const sql = `DELETE FROM ${this.baseTable} WHERE id=${id}`
     await evalSql(sql)
   }
 
   public async update (params: any) {
-    console.log(params)
     const updateParams: ISqlUpdateParams = {
       keys: [], values: [], id: params.id
     }
@@ -97,7 +96,7 @@ export class RouterModel implements IRouterModel {
   public async query (params: ISqlSelectParams) : Promise<{ items: any[], total: number }> {
     let sql = parseSelectSql(this.baseTable, params)
     const result = await evalSql(sql)
-    const items = result.rows.map(item => {
+    let items = result.rows.map(item => {
       for (const key in item) {
         item[key] = typeof item[key] === 'string'
           ? item[key] = unescape(item[key])
@@ -105,9 +104,14 @@ export class RouterModel implements IRouterModel {
       }
       return item
     })
+    items = this.parseQueryData(items)
     sql = `SELECT COUNT(id) FROM ${this.baseTable}`
     const { count } = (await evalSql(sql)).rows[0]
     return Promise.resolve({ items, total: Number(count) })
+  }
+
+  public parseQueryData (data: any): any {
+    return data
   }
 
 }

@@ -19,7 +19,7 @@ export class PwdRouter extends RouterModel {
 
   
   public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
-    const { limit, offset } = query as any
+    const { limit, offset, order } = query as any
     let {
       pwd, id
     } = body
@@ -46,6 +46,12 @@ export class PwdRouter extends RouterModel {
     // 更新或删除操作没有传入id
     if (method.contain(['PUT', 'DELETE']) && !id) {
       return false
+    }
+    // 排序配置
+    if (order && order.length > 0) {
+      query.order = order.map(item => JSON.parse(item))
+    } else {
+      query.order = null
     }
     return true
   }
