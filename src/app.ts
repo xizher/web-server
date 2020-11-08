@@ -1,6 +1,6 @@
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import { ErrorModel } from './models/response-model'
+import { ErrorModel, ErrorType } from './models/response-model'
 import { Application, json, NextFunction, Request, Response, Router, urlencoded } from 'express';
 import { IRouterClass } from './routes';
 
@@ -39,7 +39,7 @@ export class AppManager {
 
   public useLastRouter () : AppManager {
     this.app.use((req : Request, res : Response, next : NextFunction) => {
-      res.json(new ErrorModel('404'))
+      res.json(new ErrorModel(ErrorType.NOFOUND_ERROR))
     });
     this.app.use((err, req : Request, res : Response, next : NextFunction) => {
       res.locals.message = err.message;

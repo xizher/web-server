@@ -16,41 +16,4 @@ export class NavRouter extends RouterModel {
     this.updateFields = ['name', 'type', 'url', 'visible']
   }
 
-  public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
-    
-    const { limit, offset, visible, order } = query as any
-    let {
-      id
-    } = body
-    if (!id) {
-      id = query.id
-      if (id) {
-        body.id = id
-      }
-    }
-    const {} = params
-    const {} = headers
-    if (visible && typeof visible !== 'boolean') {
-      return false
-    }
-    // 分页查询情况
-    if (limit && offset && !(!isNaN(limit) && !isNaN(offset) && Number(limit) > -1 && Number(offset) > -1)) {
-      return false
-    }
-    // 标识符格式
-    if (id && isNaN(id)) {
-      return false
-    }
-    // 更新或删除操作没有传入id
-    if (method.contain(['PUT', 'DELETE']) && !id) {
-      return false
-    }
-    // 排序配置
-    if (order && order.length > 0) {
-      query.order = order.map(item => JSON.parse(item))
-    } else {
-      query.order = null
-    }
-    return true
-  }
 }
