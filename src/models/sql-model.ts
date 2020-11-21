@@ -65,6 +65,7 @@ export class SqlWhere {
   }
   public format () : string {
     const whereStrArr = []
+    console.log(this._where)
     for (let i = 0; i < this._where.length; i++) {
       const elem = this._where[i];
       whereStrArr.push(`(${elem.map(item => `${item.field} ${item.operator} ${typeof item.value === 'string' ? `'${item.operator === 'LIKE' ? `%${item.value}%` : item.value}'` : item.value}`).join(' OR ')})`)

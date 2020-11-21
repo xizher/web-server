@@ -91,6 +91,14 @@ export class BlogRouter extends RouterModel {
     return true
   }
 
+  public beforeQuery (data: any) : WxzError | true {
+    if (data.where) {
+      data.where = [JSON.parse(data.where)]
+      console.log(data.where)
+    }
+    return true
+  }
+
 
 
   // public checkLegitimate ({ query, body, params, headers, method }: Request) : boolean {
