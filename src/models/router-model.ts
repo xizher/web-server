@@ -25,6 +25,7 @@ export class RouterModel implements IRouterModel {
     this.router
     // 参数验证
     .use('/', (req, res, next) => {
+      console.log(req.headers)
       const result = this.beforeUse(req)
       if (result === true) { // only return true
         next()

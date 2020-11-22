@@ -5,7 +5,7 @@ import { Server } from './server';
 import './extensions'
 
 const { app } = new AppManager()
-  .useCrossDomain()
+  // .useCrossDomain()
   .useExtension()
   .useRouter('/', new TestRouter())
   .useRouter('/api/blog', new BlogRouter())
@@ -14,4 +14,4 @@ const { app } = new AppManager()
   .useRouter('/api/money', new MoneyRouter())
   .useLastRouter();
 
-new Server(app, 3333);
+new Server(app, 3000);
