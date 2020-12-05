@@ -1,0 +1,8 @@
+node_modules/*
+*.html
+*.ts
+**/dist
+**/*.min.*
+test/*
+webpack.config.js
+*.vue
