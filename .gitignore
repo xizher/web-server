@@ -1,5 +1,5 @@
-src/conf/*
-!src/conf/readme.txt
+src/config/*
+!src/config/readme.txt
 
 /old
 /build
