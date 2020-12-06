@@ -31,8 +31,8 @@ router
         } else {
           res.json(new ErrorModel('LOGIN_FAIL', `查询结果：【${result.rowCount}】`))
         }
-      }).catch(() => {
-        res.json(new ErrorModel('CONNECT_ERROR'))
+      }).catch(err => {
+        res.json(new ErrorModel('CONNECT_ERROR', err))
       })
     } else {
       res.json(new ErrorModel('INPUT_ERROR', `输入 → 账户:【${username}】；暗文【${password}】`))
@@ -45,10 +45,12 @@ router
       const expTime = result?.[0]?.exp
       if (nowTime < expTime) {
         res.json(new SuccessModel(true))
-        mongodbHelper.update({ type: 'login', taken, oid }, { exp: new Date().getTime() + 1000 * 60 * 5 })
+        mongodbHelper.update({ type: 'login', taken, oid }, { exp: new Date().getTime() + 1000 * 60 * 30 })
       } else {
         res.json(new ErrorModel('WRONG', '登录过期'))
       }
+    }).catch(err => {
+      res.json(new ErrorModel('CONNECT_ERROR', err))
     })
   })
 
