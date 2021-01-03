@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Context } from "koa";
+import routes from "koa-route";
+export * from './route.translate/route.translate'
 
-export interface IRouterClass {
-  router: Router
-}
-
-export * from './test'
-export * from './api/blog'
-export * from './api/nav'
-export * from './api/pwd'
-export * from './api/money'
+export default routes.get('', (ctx: Context) => {
+  ctx.response.type = 'json'
+  const { query, querystring } = ctx
+  ctx.response.body = {
+    'test': { query, querystring }
+  }
+})

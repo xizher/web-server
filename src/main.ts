@@ -1,17 +1,16 @@
-import { AppManager } from './app';
-import { BlogRouter, NavRouter, PwdRouter, TestRouter, MoneyRouter } from './routes';
-import { Server } from './server';
+import Koa from 'koa'
+import logger from './middleware/logger'
+import notFount from './middleware/not-found'
+import homeRoute, {
+  translateRoute
+} from './routes'
 
-import './extensions'
-
-const { app } = new AppManager()
-  // .useCrossDomain()
-  .useExtension()
-  .useRouter('/', new TestRouter())
-  .useRouter('/api/blog', new BlogRouter())
-  .useRouter('/api/nav', new NavRouter())
-  .useRouter('/api/pwd', new PwdRouter())
-  .useRouter('/api/money', new MoneyRouter())
-  .useLastRouter();
-
-new Server(app, 3000);
+new Koa()
+  .use(logger)
+  .use(notFount)
+  .use(homeRoute)
+  .use(translateRoute)
+  .on('error', err => {
+    console.error(`error info: \n${err}`)
+  })
+  .listen(3000)
